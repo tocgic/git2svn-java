@@ -1,5 +1,7 @@
 package com.tocgic.gitsvn.versioncontrolservice;
 
+import java.util.ArrayList;
+
 import com.tocgic.gitsvn.util.Out;
 
 public class Git extends Vcs {
@@ -22,6 +24,19 @@ public class Git extends Vcs {
     @Override
     protected String getOptionNamePass() {
         return null;
+    }
+
+    @Override
+    protected String run(String... commands) {
+        ArrayList<String> params = new ArrayList<>();
+        params.add("cd");
+        params.add(repoDirectory);
+        params.add("&&");
+        for (String command : commands) {
+            params.add(command);
+        }
+        String[] extendedCommands = params.toArray(new String[params.size()]);
+        return super.run(extendedCommands);
     }
 
     /**
