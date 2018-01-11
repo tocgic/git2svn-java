@@ -1,6 +1,7 @@
 package com.tocgic.gitsvn.versioncontrolservice;
 
 import com.tocgic.gitsvn.util.Out;
+import com.tocgic.gitsvn.util.RuntimeExecutor;
 import java.io.File;
 import java.util.ArrayList;
 
@@ -20,18 +21,24 @@ abstract public class Vcs {
         this.repoDirectory = repoDirectory;
         this.authUser = authUser;
         this.authPass = authPass;
-        if (this.repoDirectory == null || this.repoDirectory.length() < 1) {
-            this.repoDirectory = ".";
-        } else {
+        executor = new RuntimeExecutor();
+        if (this.repoDirectory != null && this.repoDirectory.length() > 0) {
+            if (this.repoDirectory.endsWith(File.separator)) {
+                this.repoDirectory.substring(0, this.repoDirectory.length()-1);
+            }
             File svnDirectory = new File(repoDirectory);
             if (!svnDirectory.exists()) {
                 svnDirectory.mkdirs();
             }
+            executor.setWorkingDirectory(repoDirectory);
         }
-        executor = new RuntimeExecutor();
     }
 
-    protected String[] makeParam(String... commands) {
+    public String getRepoDirectory() {
+        return repoDirectory;
+    }
+
+    protected ArrayList<String> makeParam() {
         ArrayList<String> list = new ArrayList<>();
         list.add(getVcsName());
         if (authUser != null && authUser.length() > 0) {
@@ -42,6 +49,11 @@ abstract public class Vcs {
             list.add(getOptionNameUser());
             list.add(authPass);
         }
+        return list;
+    }
+
+    protected String[] makeParam(String... commands) {
+        ArrayList<String> list = makeParam();
         if (commands != null) {
             for (String command : commands) {
                 list.add(command);
@@ -50,7 +62,7 @@ abstract public class Vcs {
         return list.toArray(new String[list.size()]);
     }
 
-    protected String run(String... commands) {
+    public String run(String... commands) {
         String result = null;
         try {
             result = executor.execAndRtnResult(commands);

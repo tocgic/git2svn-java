@@ -33,6 +33,8 @@ dependencies {
     // https://mvnrepository.com/artifact/org.apache.commons/commons-exec
     compile group: 'org.apache.commons', name: 'commons-exec', version: '1.3'
 
+    // https://mvnrepository.com/artifact/commons-io/commons-io
+    compile group: 'commons-io', name: 'commons-io', version: '2.4'
 }
 
 sourceCompatibility = 1.8

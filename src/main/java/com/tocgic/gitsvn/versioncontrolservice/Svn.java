@@ -1,5 +1,7 @@
 package com.tocgic.gitsvn.versioncontrolservice;
 
+import java.io.File;
+
 import com.tocgic.gitsvn.util.Out;
 
 public class Svn extends Vcs {
@@ -23,35 +25,44 @@ public class Svn extends Vcs {
     }
 
     /**
-     * svn checkout --force ${SVN_URL} ${SVN_DIR}
+     * svn checkout ${SVN_URL} ${SVN_DIR}
+     *
+     * @param isForce : --force option
      */
-    public String checkout() {
-        Out.println(Out.ANSI_GREEN, "... svn checkout --force "+remoteUrl+" "+repoDirectory);
-        return run(makeParam("checkout", "--force", remoteUrl, repoDirectory));
+    public String checkout(boolean isForce) {
+        if (remoteUrl == null || remoteUrl.length() < 1) {
+            return null;
+        }
+        Out.println(Out.ANSI_GREEN, "... svn.checkout("+isForce+")");
+        if (isForce) {
+            return run(makeParam("checkout", "--force", remoteUrl, "."));
+        } else {
+            return run(makeParam("checkout", remoteUrl, "."));
+        }
     }
 
     /**
-     * svn revert {repoDirectory} -R
+     * svn revert -R
      */
     public String revert() {
-        Out.println(Out.ANSI_GREEN, "... svn revert -R");
-        return run(makeParam("revert", repoDirectory, "-R"));
+        Out.println(Out.ANSI_GREEN, "... svn.revert())");
+        return run(makeParam("revert", ".", "-R"));
     }
 
     /**
      * svn cleanup --remove-unversioned
      */
     public String cleanup() {
-        Out.println(Out.ANSI_GREEN, "... svn cleanup --remove-unversioned");
-        return run(makeParam("cleanup", repoDirectory, "--remove-unversioned"));
+        Out.println(Out.ANSI_GREEN, "... svn.cleanup()");
+        return run(makeParam("cleanup", "--remove-unversioned"));
     }
 
     /**
      * svn update
      */
     public String update() {
-        Out.println(Out.ANSI_GREEN, "... svn update");
-        return run(makeParam("update", repoDirectory));
+        Out.println(Out.ANSI_GREEN, "... svn.update()");
+        return run(makeParam("update"));
     }
 
     /**
@@ -70,24 +81,51 @@ public class Svn extends Vcs {
      * </log>
      */
     public String getLastXmlLog() {
-        Out.println(Out.ANSI_GREEN, "... svn log --xml -l 1");
-        return run(makeParam("log", repoDirectory, "--xml", "-l", "1"));
+        Out.println(Out.ANSI_GREEN, "... svn.getLastXmlLog()");
+        return run(makeParam("log", "--xml", "-l", "1"));
     }
 
     /**
-     * svn status {repoDirectory}
+     * svn status
      */
     public String status() {
-        Out.println(Out.ANSI_GREEN, "... svn status");
+        Out.println(Out.ANSI_GREEN, "... svn.status()");
         return run(makeParam("status", repoDirectory));
+    }
+
+    /**
+     * svn add
+     */
+    public String add(String fileName) {
+        Out.println(Out.ANSI_GREEN, "... svn.add("+fileName+")");
+        if (fileName != null && fileName.length() > 0) {
+            if (fileName.contains("@")) {
+                fileName += "@";
+            }
+            return run(makeParam("add", "\""+fileName+"\""));
+        }
+        return null;
+    }
+
+    /**
+     * svn rm
+     */
+    public String rm(String fileName) {
+        Out.println(Out.ANSI_GREEN, "... svn.rm("+fileName+")");
+        if (fileName != null && fileName.length() > 0) {
+            if (fileName.contains("@")) {
+                fileName += "@";
+            }
+            return run(makeParam("rm", "\""+fileName+"\""));
+        }
+        return null;
     }
 
     /**
      * svn commit -m {message}
      */
     public String commit(String commitMessage) {
-        Out.println(Out.ANSI_GREEN, "... svn commit -m "+commitMessage);
-        return run(makeParam("commit", repoDirectory, "-m", commitMessage));
+        Out.println(Out.ANSI_GREEN, "... svn.commit("+commitMessage+")");
+        return run(makeParam("commit", "-m", "'"+commitMessage+"'"));
     }
-
 }

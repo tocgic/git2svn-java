@@ -1,15 +1,29 @@
-package com.tocgic.gitsvn.versioncontrolservice;
+package com.tocgic.gitsvn.util;
 
 import com.tocgic.gitsvn.util.Out;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.PumpStreamHandler;
 
 public class RuntimeExecutor {
+    private File workingDirectory;
+
     public RuntimeExecutor() {
 
+    }
+
+    public void setWorkingDirectory(String directory) {
+        if (directory != null && directory.length() > 0) {
+            workingDirectory = new File(directory);
+            if (!workingDirectory.exists()) {
+                workingDirectory.mkdirs();
+            }
+        } else {
+            workingDirectory = null;
+        }
     }
 
     public void byCommonsExec(String[] command) throws IOException, InterruptedException {
@@ -20,7 +34,11 @@ public class RuntimeExecutor {
             }
         }
         DefaultExecutor executor = new DefaultExecutor();
-        executor.getStreamHandler();
+        if (workingDirectory != null) {
+            executor.setWorkingDirectory(workingDirectory);
+            //Out.println(Out.ANSI_PURPLE, "... workingDirectory : "+workingDirectory.getAbsolutePath());
+        }
+        // executor.getStreamHandler();
         executor.execute(cmdLine);
     }
 
@@ -42,15 +60,22 @@ public class RuntimeExecutor {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         PumpStreamHandler streamHandler = new PumpStreamHandler(baos);
         executor.setStreamHandler(streamHandler);
-
+        if (workingDirectory != null) {
+            executor.setWorkingDirectory(workingDirectory);
+            //Out.println(Out.ANSI_PURPLE, "... workingDirectory : "+workingDirectory.getAbsolutePath());
+        }
         try {
-
+            String params = "";
+            for (String cmd : command) {
+                params += cmd + " ";
+            }
+            Out.println(Out.ANSI_PURPLE, "... runtime$ " + params);
+            
             int exitCode = executor.execute(cmdLine);
             rtnStr = baos.toString();
 
-            Out.println(Out.ANSI_GREEN, "... exitCode : " + exitCode);
+            Out.println(Out.ANSI_PURPLE, "... runtime: " + exitCode);
             //Out.println(Out.ANSI_YELLOW, "outputStr : " + rtnStr);
-
         } catch (Exception e) {
             Out.println(Out.ANSI_RED, "error : " + e.getMessage());
             throw new Exception(e.getMessage(), e);
