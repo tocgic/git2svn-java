@@ -11,6 +11,7 @@ abstract public class Vcs {
     protected String authUser;
     protected String authPass;
     private RuntimeExecutor executor;
+    boolean isDebug;
 
     abstract String getVcsName();
     abstract String getOptionNameUser();
@@ -21,7 +22,7 @@ abstract public class Vcs {
         this.repoDirectory = repoDirectory;
         this.authUser = authUser;
         this.authPass = authPass;
-        executor = new RuntimeExecutor();
+        executor = new RuntimeExecutor(isDebug);
         if (this.repoDirectory != null && this.repoDirectory.length() > 0) {
             if (this.repoDirectory.endsWith(File.separator)) {
                 this.repoDirectory.substring(0, this.repoDirectory.length()-1);
@@ -31,6 +32,13 @@ abstract public class Vcs {
                 svnDirectory.mkdirs();
             }
             executor.setWorkingDirectory(repoDirectory);
+        }
+    }
+
+    public void setDebug(boolean isDebug) {
+        this.isDebug = isDebug;
+        if (executor != null) {
+            executor.setDebug(isDebug);
         }
     }
 
@@ -46,7 +54,7 @@ abstract public class Vcs {
             list.add(authUser);
         }
         if (authPass != null && authPass.length() > 0) {
-            list.add(getOptionNameUser());
+            list.add(getOptionNamePass());
             list.add(authPass);
         }
         return list;
@@ -64,12 +72,16 @@ abstract public class Vcs {
 
     public String run(String... commands) {
         String result = null;
-        try {
-            result = executor.execAndRtnResult(commands);
-            Out.println(result);
-        } catch (Exception e) {
-            Out.println(Out.ANSI_RED, e.getMessage());
-        }
+        result = executor.execAndRtnResult(commands);
+        //Out.println(result);
+
+        // try {
+        //     result = executor.execAndRtnResult(commands);
+        //     Out.println(result);
+        // } catch (Exception e) {
+        //     result = e.getMessage();
+        //     Out.println(Out.ANSI_RED, result);
+        // }
         return result;
     }
 }

@@ -6,13 +6,23 @@ import java.io.File;
 import java.io.IOException;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
+import org.apache.commons.exec.ExecuteException;
 import org.apache.commons.exec.PumpStreamHandler;
 
 public class RuntimeExecutor {
+    public static final String RUNTIME_EXECUTOR_ERROR = "[RuntimeExecutor_error]";
     private File workingDirectory;
+    private boolean isDebug;
 
     public RuntimeExecutor() {
+    }
 
+    public RuntimeExecutor(boolean isDebug) {
+        setDebug(isDebug);
+    }
+
+    public void setDebug(boolean isDebug) {
+        this.isDebug = isDebug;
     }
 
     public void setWorkingDirectory(String directory) {
@@ -36,9 +46,10 @@ public class RuntimeExecutor {
         DefaultExecutor executor = new DefaultExecutor();
         if (workingDirectory != null) {
             executor.setWorkingDirectory(workingDirectory);
-            //Out.println(Out.ANSI_PURPLE, "... workingDirectory : "+workingDirectory.getAbsolutePath());
+            if (isDebug) {
+                Out.println(Out.ANSI_BLUE, "... workingDirectory : "+workingDirectory.getAbsolutePath());
+            }
         }
-        // executor.getStreamHandler();
         executor.execute(cmdLine);
     }
 
@@ -48,11 +59,13 @@ public class RuntimeExecutor {
      * @return
      * @throws Exception
      */
-    public String execAndRtnResult(String[] command) throws Exception {
+    public String execAndRtnResult(String[] command) {
         String rtnStr = "";
         CommandLine cmdLine = CommandLine.parse(command[0]);
         for (int i=1, n=command.length ; i<n ; i++ ) {
             if (command[i] != null && command[i].length() > 0) {
+                // String item = command[i].replace(" ", "\\ ");
+                // cmdLine.addArgument(item);
                 cmdLine.addArgument(command[i]);
             }
         }
@@ -62,25 +75,32 @@ public class RuntimeExecutor {
         executor.setStreamHandler(streamHandler);
         if (workingDirectory != null) {
             executor.setWorkingDirectory(workingDirectory);
-            //Out.println(Out.ANSI_PURPLE, "... workingDirectory : "+workingDirectory.getAbsolutePath());
+            if (isDebug) {
+                Out.println(Out.ANSI_BLUE, "... workingDirectory : "+workingDirectory.getAbsolutePath());
+            }
         }
         try {
             String params = "";
             for (String cmd : command) {
                 params += cmd + " ";
             }
-            Out.println(Out.ANSI_PURPLE, "... runtime$ " + params);
+            if (isDebug) {
+                Out.println(Out.ANSI_BLUE, "... runtime$ " + params);
+            }
             
             int exitCode = executor.execute(cmdLine);
             rtnStr = baos.toString();
-
-            Out.println(Out.ANSI_PURPLE, "... runtime: " + exitCode);
-            //Out.println(Out.ANSI_YELLOW, "outputStr : " + rtnStr);
-        } catch (Exception e) {
-            Out.println(Out.ANSI_RED, "error : " + e.getMessage());
-            throw new Exception(e.getMessage(), e);
+        } catch (ExecuteException ee) {
+            rtnStr += "\n\n"+RUNTIME_EXECUTOR_ERROR+" "+ee.getMessage();
+            ee.printStackTrace();
+        } catch (IOException ie) {
+            rtnStr += "\n\n"+RUNTIME_EXECUTOR_ERROR+" "+ie.getMessage();
+            ie.printStackTrace();
         }
         return rtnStr;
+    }
 
+    public static boolean isErrorResponse(String response) {
+        return (response != null && response.contains(RUNTIME_EXECUTOR_ERROR));
     }
 }

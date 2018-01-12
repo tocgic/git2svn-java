@@ -1,8 +1,7 @@
 package com.tocgic.gitsvn.versioncontrolservice;
 
-import java.io.File;
-
 import com.tocgic.gitsvn.util.Out;
+import com.tocgic.gitsvn.util.RuntimeExecutor;
 
 public class Svn extends Vcs {
     public Svn(String remoteUrl, String repoDirectory, String authUser, String authPass) {
@@ -45,7 +44,7 @@ public class Svn extends Vcs {
      * svn revert -R
      */
     public String revert() {
-        Out.println(Out.ANSI_GREEN, "... svn.revert())");
+        Out.println(Out.ANSI_GREEN, "... svn.revert()");
         return run(makeParam("revert", ".", "-R"));
     }
 
@@ -98,11 +97,19 @@ public class Svn extends Vcs {
      */
     public String add(String fileName) {
         Out.println(Out.ANSI_GREEN, "... svn.add("+fileName+")");
+        int tryLimit = 2;
         if (fileName != null && fileName.length() > 0) {
             if (fileName.contains("@")) {
                 fileName += "@";
             }
-            return run(makeParam("add", "\""+fileName+"\""));
+            do {
+                tryLimit--;     
+                String result = run(makeParam("add", "--force", "\""+fileName+"\""));
+                // String result = return run(makeParam("add", fileName));
+                if (!RuntimeExecutor.isErrorResponse(result)) {
+                    return result;
+                }
+            } while (tryLimit > 0);
         }
         return null;
     }
@@ -125,7 +132,8 @@ public class Svn extends Vcs {
      * svn commit -m {message}
      */
     public String commit(String commitMessage) {
-        Out.println(Out.ANSI_GREEN, "... svn.commit("+commitMessage+")");
-        return run(makeParam("commit", "-m", "'"+commitMessage+"'"));
+        String messageHead = (commitMessage != null && commitMessage.length() > 50) ? commitMessage.substring(0, 50) + "..." : commitMessage;
+        Out.println(Out.ANSI_GREEN, "... svn.commit("+messageHead+")");
+        return run(makeParam("commit", "-m", commitMessage));
     }
 }

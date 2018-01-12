@@ -73,7 +73,9 @@ public class Git extends Vcs {
      * @param prettyFormatOptions : %an (author), %s (msg), %cd (date {YYYY/MM/DD HH:MM:SS})
      */
     public String getLogValue(String commit, String prettyFormatOptions) {
-        Out.println(Out.ANSI_GREEN, "... git.getLogValue("+commit+","+prettyFormatOptions+")");
+        if (isDebug) {
+            Out.println(Out.ANSI_GREEN, "... git.getLogValue("+commit+","+prettyFormatOptions+")");
+        }
         return run(makeParam("log", "-n", "1", "--date=format:%Y/%m/%d_%H:%M:%S", "--pretty=format:"+prettyFormatOptions, commit));
     }
 

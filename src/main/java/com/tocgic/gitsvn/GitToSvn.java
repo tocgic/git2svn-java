@@ -5,8 +5,11 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.io.StringReader;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
@@ -16,11 +19,13 @@ import com.tocgic.gitsvn.versioncontrolservice.Git;
 import com.tocgic.gitsvn.versioncontrolservice.Svn;
 
 public class GitToSvn {
+    private static final int RETRY_MAX = 3;
     private static final String SVN_COMMIT_TAG = "GitCommitHash:";
     private Svn svn;
     private Git git;
-    private RuntimeExecutor executor;
     private String sourceGitBranchName = "master";
+    private boolean isDebug;
+    private int retryLimit = RETRY_MAX;
     
     public static void main(String args[]) {
         String svnUrl = null;
@@ -32,58 +37,65 @@ public class GitToSvn {
         String gitUser = null;
         String gitPass = null;
 
+        int index = 0;
+        boolean optionIsDebug = false;
+        if (args != null) {
+            for (String arg : args) {
+                if (arg.startsWith("-")) {
+                    index++;
+                    if ("-debug".equals(arg)) {
+                        optionIsDebug = true;
+                    }
+                }
+            }
+        }
+
         if (args != null && args.length == 2) {
-            gitDir = args[0];
-            svnDir = args[1];
+            gitDir = args[index++];
+            svnDir = args[index++];
         } else if (args != null && args.length == 4) {
-            gitDir = args[0];
-            gitUrl = args[1];
-            svnDir = args[2];
-            svnUrl = args[3];
+            gitDir = args[index++];
+            gitUrl = args[index++];
+            svnDir = args[index++];
+            svnUrl = args[index++];
         } else if (args != null && args.length == 5) {
-            gitDir = args[0];
-            svnDir = args[1];
-            svnUrl = args[2];
-            svnUser = args[3];
-            svnPass = args[4];
+            gitDir = args[index++];
+            svnDir = args[index++];
+            svnUrl = args[index++];
+            svnUser = args[index++];
+            svnPass = args[index++];
         } else if (args != null && args.length == 6) {
-            gitDir = args[0];
-            gitUrl = args[1];
-            svnDir = args[2];
-            svnUrl = args[3];
-            svnUser = args[4];
-            svnPass = args[5];
+            gitDir = args[index++];
+            gitUrl = args[index++];
+            svnDir = args[index++];
+            svnUrl = args[index++];
+            svnUser = args[index++];
+            svnPass = args[index++];
         } else if (args != null && args.length == 8) {
-            gitDir = args[0];
-            gitUrl = args[1];
-            gitUser = args[2];
-            gitPass = args[3];
-            svnDir = args[4];
-            svnUrl = args[5];
-            svnUser = args[6];
-            svnPass = args[7];
+            gitDir = args[index++];
+            gitUrl = args[index++];
+            gitUser = args[index++];
+            gitPass = args[index++];
+            svnDir = args[index++];
+            svnUrl = args[index++];
+            svnUser = args[index++];
+            svnPass = args[index++];
         } else {
-            Out.println(Out.ANSI_YELLOW, "usage: java -jar git2svn-java.jar [gitDir] [svnDir]");
+            Out.println(Out.ANSI_YELLOW, "usage: java -jar git2svn-java.jar [option:-debug] [gitDir] [svnDir]");
             Out.println(Out.ANSI_BLUE, "exam$ java -jar git2svn-java.jar \"/Users/tocgic/temp/sourceGit\" \"/Users/tocgic/tempTargetSvn\"");
-            Out.println(Out.ANSI_YELLOW, "usage: java -jar git2svn-java.jar [gitDir] [gitUrl] [svnDir] [svnUrl]");
+            Out.println(Out.ANSI_YELLOW, "usage: java -jar git2svn-java.jar [option:-debug] [gitDir] [gitUrl] [svnDir] [svnUrl]");
             Out.println(Out.ANSI_BLUE, "exam$ java -jar git2svn-java.jar \"/Users/tocgic/temp/sourceGit\" \"git@10.0.0.69:devone/TouchEn_OneGuard_4_0_ios_SDK.git\" \"/Users/tocgic/temp/sourceSvn\" \"https://dwhan@pms.raonsecure.com:8000/svn/TouchEn_mGuard/agent/TouchEn_mGuard_3_5/iOS/trunk/OneGuardSDK\"");
-            Out.println(Out.ANSI_YELLOW, "usage: java -jar git2svn-java.jar [gitDir] [svnDir] [svnUrl] [svnUser] [svnPass]");
+            Out.println(Out.ANSI_YELLOW, "usage: java -jar git2svn-java.jar [option:-debug] [gitDir] [svnDir] [svnUrl] [svnUser] [svnPass]");
             Out.println(Out.ANSI_BLUE, "exam$ java -jar git2svn-java.jar \"/Users/tocgic/temp/sourceGit\" \"/Users/tocgic/temp/sourceSvn\" \"https://dwhan@pms.raonsecure.com:8000/svn/TouchEn_mGuard/agent/TouchEn_mGuard_3_5/iOS/trunk/OneGuardSDK\" svnUserId svnPassword");
-            Out.println(Out.ANSI_YELLOW, "usage: java -jar git2svn-java.jar [gitDir] [gitUrl] [svnDir] [svnUrl] [svnUser] [svnPass]");
+            Out.println(Out.ANSI_YELLOW, "usage: java -jar git2svn-java.jar [option:-debug] [gitDir] [gitUrl] [svnDir] [svnUrl] [svnUser] [svnPass]");
             Out.println(Out.ANSI_BLUE, "exam$ java -jar git2svn-java.jar \"/Users/tocgic/temp/sourceGit\" \"git@10.0.0.69:devone/TouchEn_OneGuard_4_0_ios_SDK.git\" \"/Users/tocgic/temp/sourceSvn\" \"https://dwhan@pms.raonsecure.com:8000/svn/TouchEn_mGuard/agent/TouchEn_mGuard_3_5/iOS/trunk/OneGuardSDK\" svnUserId svnPassword");
-            Out.println(Out.ANSI_YELLOW, "usage: java -jar git2svn-java.jar [gitDir] [gitUrl] [gitUser] [gitPass] [svnDir] [svnUrl] [svnUser] [svnPass]");
+            Out.println(Out.ANSI_YELLOW, "usage: java -jar git2svn-java.jar [option:-debug] [gitDir] [gitUrl] [gitUser] [gitPass] [svnDir] [svnUrl] [svnUser] [svnPass]");
             return;
         } 
 
-        // String svnUrl = "https://dwhan@pms.raonsecure.com:8000/svn/TouchEn_mGuard/agent/TouchEn_mGuard_3_5/iOS/trunk/OneGuardSDK";
-        // String svnDir = "/Users/tocgic/SvnRepository/test-svn-git/svnOneGuard3";
-        // String svnUser = null;
-        // String svnPass = null;
-        // String gitUrl = "git@10.0.0.69:devone/TouchEn_OneGuard_4_0_ios_SDK.git";
-        // String gitDir = "/Users/tocgic/SvnRepository/test-svn-git/gitOneGuard3";
-        // String gitUser = null;
-        // String gitPass = null;
         GitToSvn git2svn = new GitToSvn(svnUrl, svnDir, svnUser, svnPass, gitUrl, gitDir, gitUser, gitPass);
+        git2svn.setDebug(optionIsDebug);
+
         // git2svn.test();
         git2svn.start();
     }
@@ -91,47 +103,42 @@ public class GitToSvn {
     public GitToSvn(String svnUrl, String svnDir, String svnUser, String svnPass, String gitUrl, String gitDir, String gitUser, String gitPass) {
         svn = new Svn(svnUrl, svnDir, svnUser, svnPass);
         git = new Git(gitUrl, gitDir, gitUser, gitPass);
-        executor = new RuntimeExecutor();
-        executor.setWorkingDirectory(gitDir);
     }
 
-    // private String run(String... commands) {
-    //     String result = null;
-    //     try {
-    //         result = executor.execAndRtnResult(commands);
-    //         Out.println(result);
-    //     } catch (Exception e) {
-    //         Out.println(Out.ANSI_RED, e.getMessage());
-    //     }
-    //     return result;
-    // }
+    public void setDebug(boolean isDebug) {
+        this.isDebug = isDebug;
+        svn.setDebug(isDebug);
+        git.setDebug(isDebug);
+    }
 
     private void cloneIfNeeds() {
         File svnFolder = new File(svn.getRepoDirectory()+File.separator+".svn");
         if (!svnFolder.exists()) {
-            Out.println(Out.ANSI_YELLOW, "... cloneIfNeeds(), svn.checkout()");
+            Out.println(Out.ANSI_YELLOW, "cloneIfNeeds(), svn.checkout()");
             svn.checkout(true);
         }
         File gitFolder = new File(git.getRepoDirectory()+File.separator+".git");
         if (!gitFolder.exists()) {
-            Out.println(Out.ANSI_YELLOW, "... cloneIfNeeds(), git.clone()");
+            Out.println(Out.ANSI_YELLOW, "cloneIfNeeds(), git.clone()");
             git.clone();
         }
     }
 
     private boolean cleanup() {
-        Out.println(Out.ANSI_YELLOW, "... cleanup()");
+        Out.println(Out.ANSI_YELLOW, "cleanup()");
         boolean result = false;
         svn.revert();
         svn.cleanup();
-        git.checkout(sourceGitBranchName, true);
-        result = true;
-        Out.println(Out.ANSI_YELLOW, "... cleanup(), result:"+result);
+        String response = git.checkout(sourceGitBranchName, true);
+        result = RuntimeExecutor.isErrorResponse(response);
+        if (isDebug) {
+            Out.println(Out.ANSI_YELLOW, "cleanup(), result:"+result);
+        }
         return result;
     }
 
     private String svnGetLastGitCommit() {
-        Out.println(Out.ANSI_YELLOW, "... svnGetLastGitCommit()");
+        Out.println(Out.ANSI_YELLOW, "svnGetLastGitCommit()");
         svn.update();
         String xml = svn.getLastXmlLog();
         String commitHash = "";
@@ -142,29 +149,33 @@ public class GitToSvn {
                 commitHash = xml.substring(startIndex, startIndex + 40);
             }
         }
-        Out.println(Out.ANSI_YELLOW, "... svnGetLastGitCommit(), result:"+commitHash);
+        if (isDebug) {
+            Out.println(Out.ANSI_YELLOW, "svnGetLastGitCommit(), result:"+commitHash);
+        }
         return commitHash;
     }
 
     private boolean svnCheckin() {
-        Out.println(Out.ANSI_YELLOW, "... svnCheckin()");
+        Out.println(Out.ANSI_YELLOW, "svnCheckin()");
         boolean result = false;
         String svnStatus = svn.status();
-        Out.println(Out.ANSI_BLUE, "... >>> svnStatus:"+svnStatus);
         if (svnStatus != null && svnStatus.length() > 0) {
             BufferedReader reader = new BufferedReader(new StringReader(svnStatus));
             String line;
             try {
                 while ((line = reader.readLine()) != null) {
+                    line = line.trim();
                     if (line.length() > 1) {
-                        Out.println(Out.ANSI_BLUE, "... >>> line:"+line);
-                        String status = line.substring(0, 1);
-                        String fileName = line.substring(1).trim();
+                        //Out.println(Out.ANSI_BLUE, ">>> line:"+line);
+                        String[] items = line.split(" ");
+                        String status = items[0];
+                        // String fileName = line.substring(status.length()).trim().replace(" ", "\\ ");
+                        String fileName = line.substring(status.length()).trim();
                         if ("?".equals(status)) {
                             svn.add(fileName);
-                        } else if ("!".equals(status)) {
+                        } else if (status != null && status.startsWith("!")) {
                             svn.rm(fileName);
-                        } else if ("~".equals(status)) {
+                        } else if (status != null && status.startsWith("~")) {
                             //svn.run("rm", "-rf", fileName);
                             try {
                                 FileUtils.forceDelete(new File(svn.getRepoDirectory()+File.separator+fileName));
@@ -172,6 +183,13 @@ public class GitToSvn {
                                 Out.println(Out.ANSI_RED, eFile.getMessage());
                             }
                             svn.update();
+                        } else {
+                            if (status.length()> 1) {
+                                Out.println(Out.ANSI_RED, "!!! svn status:"+status+", fileName:"+fileName);
+                                Out.println(Out.ANSI_RED, "!!! Check svn status\n"+svnStatus);
+                                System.exit(1);
+                                break;
+                            }
                         }
                     }
                 }
@@ -182,12 +200,15 @@ public class GitToSvn {
                 Out.println(Out.ANSI_RED, e.getMessage());
             }
         }
-        Out.println(Out.ANSI_YELLOW, "... svnCheckin(), result:"+result);
+        if (isDebug) {
+            Out.println(Out.ANSI_YELLOW, "svnCheckin(), result:"+result);
+        }
         return result;
     }
 
     private boolean svnCommit(String commitedDate, String commiter, String commitMessage, String commit) {
-        Out.println(Out.ANSI_YELLOW, "... svnCommit()");
+        Out.println(Out.ANSI_YELLOW, "svnCommit()");
+        int tryLimit = 1;
         boolean result = true;
         if (commitedDate == null || commitedDate.length() < 1) {
             commitedDate = "0000/00/00_00:00:00";
@@ -200,19 +221,29 @@ public class GitToSvn {
         }
         String authorInfo = "["+commiter+"]";
         String message = commitMessage.replace(authorInfo, "").trim()+"\n\n"+SVN_COMMIT_TAG+commit;
-        String response = svn.commit(commitedDate+" "+authorInfo+" "+message);
-        if (response != null && response.length() > 0) {
-            if (response.contains("error")) {
+        String newCommitMessage = commitedDate+" "+authorInfo+" "+message;
+        do {
+            try {
+                Thread.sleep(500L);
+            } catch (Exception e) {}
+
+            tryLimit--;
+            String response = svn.commit(newCommitMessage);
+            if (RuntimeExecutor.isErrorResponse(response)) {
                 Out.println(Out.ANSI_RED, response);
                 result = false;
+                Out.println(Out.ANSI_YELLOW, "svnCommit() - RETRY");
+            } else {
+                break;
             }
-        }
-        Out.println(Out.ANSI_YELLOW, "... svnCommit(), result:"+result);
+        } while (tryLimit > 0);
+        Out.println(Out.ANSI_YELLOW, "svnCommit(), result:"+result);
+        Out.println(Out.ANSI_YELLOW, "======================================================================\n"+newCommitMessage+"\n======================================================================\n\n");
         return result;
     }
 
     private ArrayList<String> getGitAllRevList() {
-        Out.println(Out.ANSI_YELLOW, "... getGitAllRevList()");
+        Out.println(Out.ANSI_YELLOW, "getGitAllRevList()");
         ArrayList<String> revList = new ArrayList<>();
         String response = git.getRevListAllMatch(sourceGitBranchName);
         if (response != null && response.length() > 0) {
@@ -227,13 +258,12 @@ public class GitToSvn {
                 Out.println(Out.ANSI_RED, e.getMessage());
             }
         }
-        Out.println(Out.ANSI_YELLOW, "... getGitAllRevList(), itemCount:"+revList.size());
+        Out.println(Out.ANSI_YELLOW, "getGitAllRevList(), itemCount:"+revList.size());
         return revList;
     }
 
     private void copyGitToSvn() {
-        boolean isIgnoreGitSpecificFiles = false;
-        Out.println(Out.ANSI_YELLOW, "... copyGitToSvn(isIgnoreGitSpecificFiles:"+isIgnoreGitSpecificFiles+")");
+        Out.println(Out.ANSI_YELLOW, "copyGitToSvn()");
 
         File gitDir = new File(git.getRepoDirectory());
         File svnDir = new File(svn.getRepoDirectory());
@@ -258,7 +288,7 @@ public class GitToSvn {
                 if (!file.exists()) {
                     continue;
                 }
-                Out.println(Out.ANSI_YELLOW, "... deleteFile : "+file.getAbsolutePath());
+                //Out.println(Out.ANSI_YELLOW, "deleteFile : "+file.getAbsolutePath());
                 FileUtils.forceDelete(file);
             }
             
@@ -302,7 +332,7 @@ public class GitToSvn {
         //         for (int i = 0; i <= index; i++) {
         //             revList.remove(0);
         //         }
-        //         Out.println(Out.ANSI_BLUE, "... find last git commit on svn. (index:"+index+"), oldSize:"+oldSize+", currentSize:"+revList.size());
+        //         Out.println(Out.ANSI_BLUE, "find last git commit on svn. (index:"+index+"), oldSize:"+oldSize+", currentSize:"+revList.size());
         //         for (String commit : revList) {
         //             Out.println(commit);
         //         }
@@ -317,18 +347,18 @@ public class GitToSvn {
             // String commit = "224da1d9d0cd87ae3c493a5fd8e865634d961d58";
             String commit = "d9917d7aaf49d3ac5e01bc76f156ce5399d6df88";
 
-            // Out.println(Out.ANSI_BLUE, "... checking out commit["+commit+"] on git");
+            // Out.println(Out.ANSI_BLUE, "checking out commit["+commit+"] on git");
             git.checkout(commit, true);
 
-            Out.println(Out.ANSI_BLUE, "... copying files");
+            Out.println(Out.ANSI_BLUE, "copying files");
             copyGitToSvn();
 
             String svnStatus = svn.status();
-            Out.println(Out.ANSI_BLUE, "... >>> svnStatus:"+svnStatus);
+            Out.println(Out.ANSI_BLUE, ">>> svnStatus:"+svnStatus);
     
-            // // Out.println(Out.ANSI_BLUE, "... remove Git specific files from SVN");
+            // // Out.println(Out.ANSI_BLUE, "remove Git specific files from SVN");
 
-            // // Out.println(Out.ANSI_BLUE, "... add new files to SVN and commit");
+            // // Out.println(Out.ANSI_BLUE, "add new files to SVN and commit");
             svnCheckin();
             String commiter = git.getLogValueAuthor(commit);
             String commitedDate = git.getLogValueDate(commit);
@@ -336,43 +366,66 @@ public class GitToSvn {
             svnCommit(commitedDate, commiter, commitMessage, commit);
         // }
     }
-
-    public void start() {
-        Out.println(Out.ANSI_BLUE, "STEP 1. clone (svn & git)");
+    
+    private void start() {
+        Out.println(Out.ANSI_PURPLE, ">> Check (svn & git) repository directory.");
         cloneIfNeeds();
-        
-        Out.println(Out.ANSI_BLUE, "STEP 2. clean");
-        cleanup();
-        Out.println(Out.ANSI_BLUE, "STEP 3. check lastGitCommit on svn");
-        String svnLastGitCommit = svnGetLastGitCommit();
-        ArrayList<String> revList = getGitAllRevList();
-        if (svnLastGitCommit.length() == 40) {
-            int index = revList.indexOf(svnLastGitCommit);
-            if (index > -1) {
-                int oldSize = revList.size();
-                for (int i = 0; i <= index; i++) {
-                    revList.remove(0);
+        boolean isSuccessDone = false;
+        int totalRetryCount = 0;
+        do {
+            Out.println(Out.ANSI_PURPLE, ">> Clean (svn & git) repository.");
+            cleanup();
+            Out.println(Out.ANSI_PURPLE, ">> Check lastGitCommit on svn");
+            String svnLastGitCommit = svnGetLastGitCommit();
+            ArrayList<String> revList = getGitAllRevList();
+            if (svnLastGitCommit.length() == 40) {
+                int index = revList.indexOf(svnLastGitCommit);
+                if (index > -1) {
+                    int oldSize = revList.size();
+                    for (int i = 0; i <= index; i++) {
+                        revList.remove(0);
+                    }
+                    Out.println(Out.ANSI_YELLOW, "- find last git commit on svn. (index:"+index+"), totalCount:"+oldSize+", todoCount:"+revList.size());
                 }
-                Out.println(Out.ANSI_BLUE, "... find last git commit on svn. (index:"+index+"), oldSize:"+oldSize+", currentSize:"+revList.size());
             }
-        }
-        Out.println(Out.ANSI_BLUE, "STEP 4. loop start (git to svn)");
-        for (String commit : revList) {
-            String commiter = git.getLogValueAuthor(commit);
-            String commitedDate = git.getLogValueDate(commit);
-            String commitMessage = git.getLogValueMsg(commit);
+            Out.println(Out.ANSI_PURPLE, ">> Start loop (git to svn)");
+            for (String commit : revList) {
+                Out.println(Out.ANSI_PURPLE, ">> Process Git ["+commit+"]");
+                String commiter = git.getLogValueAuthor(commit);
+                String commitMessage = git.getLogValueMsg(commit);
+                String commitedDate = git.getLogValueDate(commit);
+                if (commitedDate != null && commitedDate.length() > 0) {
+                    commitedDate = commitedDate.replace("_", " ");
+                }
 
-            Out.println(Out.ANSI_BLUE, "... checking out commit["+commit+"] on git");
-            git.checkout(commit, true);
+                Out.println(Out.ANSI_PURPLE, "- GIT, checking out commit["+commit+"]");
+                git.checkout(commit, true);
 
-            Out.println(Out.ANSI_BLUE, "... copying files");
-            copyGitToSvn();
+                Out.println(Out.ANSI_PURPLE, "- GIT -> SVN,  Copying files");
+                copyGitToSvn();
 
-            Out.println(Out.ANSI_BLUE, "... add new files to SVN and commit");
-            svnCheckin();
-            svnCommit(commitedDate, commiter, commitMessage, commit);
-        }
+                Out.println(Out.ANSI_PURPLE, "- SVN, add new files to SVN and commit");
+                svnCheckin();
+                boolean commitResult = svnCommit(commitedDate, commiter, commitMessage, commit);
+                if (!commitResult) {
+                    Out.println(Out.ANSI_RED, "!!! svn commit FAIL !!! git commit:"+commit);
+                    retryLimit--;
+                    totalRetryCount++;
+                    break;
+                } else {
+                    retryLimit = RETRY_MAX;
+                }
+            }
+            isSuccessDone = retryLimit == RETRY_MAX;
+        } while (!isSuccessDone && retryLimit > 0);
+
+        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        Date date = new java.util.Date();
+        String colorValue = isSuccessDone ? Out.ANSI_YELLOW : Out.ANSI_RED;        
+        Out.println(colorValue, "======================================================================");
+        Out.println(colorValue, "... F I N - "+ (isSuccessDone ? "S U C C E S S" : "F A I L"));
+        Out.println(colorValue, "======================================================================");
+        Out.println(colorValue, "... totalRetryCount : "+ totalRetryCount);
+        Out.println(colorValue, "... date ["+dateFormat.format(date)+"]");
     }
-        
-        
 }
