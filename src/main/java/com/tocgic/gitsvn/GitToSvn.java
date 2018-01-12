@@ -369,6 +369,7 @@ public class GitToSvn {
     }
     
     private void start() {
+        Date startDate = new java.util.Date();
         Out.println(Out.ANSI_PURPLE, ">> Check (svn & git) repository directory.");
         cloneIfNeeds();
         boolean isSuccessDone = false;
@@ -427,6 +428,7 @@ public class GitToSvn {
         Out.println(colorValue, "... F I N - "+ (isSuccessDone ? "S U C C E S S" : "F A I L"));
         Out.println(colorValue, "======================================================================");
         Out.println(colorValue, "... totalRetryCount : "+ totalRetryCount);
-        Out.println(colorValue, "... date ["+dateFormat.format(date)+"]");
+        Out.println(colorValue, "... ["+dateFormat.format(startDate)+"] - start");
+        Out.println(colorValue, "... ["+dateFormat.format(date)+"] - end");
     }
 }
