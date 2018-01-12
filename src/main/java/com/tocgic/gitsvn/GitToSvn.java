@@ -50,28 +50,28 @@ public class GitToSvn {
             }
         }
 
-        if (args != null && args.length == 2) {
+        if (args != null && args.length == index + 2) {
             gitDir = args[index++];
             svnDir = args[index++];
-        } else if (args != null && args.length == 4) {
+        } else if (args != null && args.length == index + 4) {
             gitDir = args[index++];
             gitUrl = args[index++];
             svnDir = args[index++];
             svnUrl = args[index++];
-        } else if (args != null && args.length == 5) {
+        } else if (args != null && args.length == index + 5) {
             gitDir = args[index++];
             svnDir = args[index++];
             svnUrl = args[index++];
             svnUser = args[index++];
             svnPass = args[index++];
-        } else if (args != null && args.length == 6) {
+        } else if (args != null && args.length == index + 6) {
             gitDir = args[index++];
             gitUrl = args[index++];
             svnDir = args[index++];
             svnUrl = args[index++];
             svnUser = args[index++];
             svnPass = args[index++];
-        } else if (args != null && args.length == 8) {
+        } else if (args != null && args.length == index + 8) {
             gitDir = args[index++];
             gitUrl = args[index++];
             gitUser = args[index++];
