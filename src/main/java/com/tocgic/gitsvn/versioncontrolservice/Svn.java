@@ -51,9 +51,13 @@ public class Svn extends Vcs {
     /**
      * svn cleanup --remove-unversioned
      */
-    public String cleanup() {
-        Out.println(Out.ANSI_GREEN, "... svn.cleanup()");
-        return run(makeParam("cleanup", "--remove-unversioned"));
+    public String cleanup(boolean isRemoveUnversioned) {
+        Out.println(Out.ANSI_GREEN, "... svn.cleanup(isRemoveUnversioned:"+isRemoveUnversioned+")");
+        if (isRemoveUnversioned) {
+            return run(makeParam("cleanup", "--remove-unversioned"));
+        } else {
+            return run(makeParam("cleanup"));
+        }
     }
 
     /**

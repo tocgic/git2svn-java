@@ -128,7 +128,7 @@ public class GitToSvn {
         Out.println(Out.ANSI_YELLOW, "cleanup()");
         boolean result = false;
         svn.revert();
-        svn.cleanup();
+        svn.cleanup(true);
         String response = git.checkout(sourceGitBranchName, true);
         result = RuntimeExecutor.isErrorResponse(response);
         if (isDebug) {
@@ -223,16 +223,17 @@ public class GitToSvn {
         String message = commitMessage.replace(authorInfo, "").trim()+"\n\n"+SVN_COMMIT_TAG+commit;
         String newCommitMessage = commitedDate+" "+authorInfo+" "+message;
         do {
-            try {
-                Thread.sleep(500L);
-            } catch (Exception e) {}
-
             tryLimit--;
             String response = svn.commit(newCommitMessage);
             if (RuntimeExecutor.isErrorResponse(response)) {
                 Out.println(Out.ANSI_RED, response);
                 result = false;
-                Out.println(Out.ANSI_YELLOW, "svnCommit() - RETRY");
+                Out.println(Out.ANSI_YELLOW, "svnCommit() - svn.clean() for RETRY");
+                svn.cleanup(false);
+                //svn.update();
+                try {
+                    Thread.sleep(500L);
+                } catch (Exception e) {}
             } else {
                 break;
             }
