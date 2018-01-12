@@ -104,7 +104,7 @@ public class Svn extends Vcs {
             }
             do {
                 tryLimit--;     
-                String result = run(makeParam("add", "--force", "\""+fileName+"\""));
+                String result = run(false, makeParam("add", "--force", fileName));
                 // String result = return run(makeParam("add", fileName));
                 if (!RuntimeExecutor.isErrorResponse(result)) {
                     return result;
@@ -123,7 +123,8 @@ public class Svn extends Vcs {
             if (fileName.contains("@")) {
                 fileName += "@";
             }
-            return run(makeParam("rm", "\""+fileName+"\""));
+            // return run(makeParam("rm", "\""+fileName+"\""));
+            return run(false, makeParam("rm", fileName));
         }
         return null;
     }
@@ -134,6 +135,6 @@ public class Svn extends Vcs {
     public String commit(String commitMessage) {
         String messageHead = (commitMessage != null && commitMessage.length() > 50) ? commitMessage.substring(0, 50) + "..." : commitMessage;
         Out.println(Out.ANSI_GREEN, "... svn.commit("+messageHead+")");
-        return run(makeParam("commit", "-m", commitMessage));
+        return run(false, makeParam("commit", "-m", commitMessage));
     }
 }

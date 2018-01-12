@@ -60,13 +60,17 @@ public class RuntimeExecutor {
      * @throws Exception
      */
     public String execAndRtnResult(String[] command) {
+        return execAndRtnResult(command, true);
+    }
+
+    public String execAndRtnResult(String[] command, boolean handleQuoting) {
         String rtnStr = "";
         CommandLine cmdLine = CommandLine.parse(command[0]);
         for (int i=1, n=command.length ; i<n ; i++ ) {
             if (command[i] != null && command[i].length() > 0) {
                 // String item = command[i].replace(" ", "\\ ");
                 // cmdLine.addArgument(item);
-                cmdLine.addArgument(command[i]);
+                cmdLine.addArgument(command[i], handleQuoting);
             }
         }
         DefaultExecutor executor = new DefaultExecutor();

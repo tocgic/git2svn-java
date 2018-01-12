@@ -70,18 +70,23 @@ abstract public class Vcs {
         return list.toArray(new String[list.size()]);
     }
 
-    public String run(String... commands) {
-        String result = null;
-        result = executor.execAndRtnResult(commands);
-        //Out.println(result);
+    public String run(ArrayList<String> commandList) {
+        if (commandList == null) {
+            return null;
+        }
+        return run(commandList.toArray(new String[commandList.size()]));
+    }
 
-        // try {
-        //     result = executor.execAndRtnResult(commands);
-        //     Out.println(result);
-        // } catch (Exception e) {
-        //     result = e.getMessage();
-        //     Out.println(Out.ANSI_RED, result);
-        // }
+    public String run(String... commands) {
+        return run(true, commands);
+    }
+
+    public String run(boolean handleQuoting, String... commands) {
+        String result = null;
+        result = executor.execAndRtnResult(commands, handleQuoting);
+        if (isDebug) {
+            Out.println(result);
+        }
         return result;
     }
 }
