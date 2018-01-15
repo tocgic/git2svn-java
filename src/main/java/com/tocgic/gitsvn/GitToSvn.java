@@ -124,6 +124,22 @@ public class GitToSvn {
         }
     }
 
+    private boolean gitPull() {
+        Out.println(Out.ANSI_YELLOW, "gitPull()");
+        boolean result = false;
+        String response = git.checkout(sourceGitBranchName, true);
+        result = RuntimeExecutor.isErrorResponse(response);
+        if (isDebug) {
+            Out.println(Out.ANSI_YELLOW, "gitPull(), git.checkout(), result:"+result);
+        }
+        response = git.pull(sourceGitBranchName);
+        result = RuntimeExecutor.isErrorResponse(response);
+        if (isDebug) {
+            Out.println(Out.ANSI_YELLOW, "cleanup(), git.pull(), result:"+result);
+        }
+        return result;
+    }
+
     private boolean cleanup() {
         Out.println(Out.ANSI_YELLOW, "cleanup()");
         boolean result = false;
@@ -326,6 +342,7 @@ public class GitToSvn {
         // Out.println(git.getLogValueDate("02acdd5181b98c3a471a9b36e2450fb91eb284df"));
 
         cloneIfNeeds();
+        gitPull();
 
         cleanup();
 
@@ -378,6 +395,7 @@ public class GitToSvn {
         Date startDate = new java.util.Date();
         Out.println(Out.ANSI_PURPLE, ">> Check (svn & git) repository directory.");
         cloneIfNeeds();
+        gitPull();
         boolean isSuccessDone = false;
         int totalRetryCount = 0;
         do {
