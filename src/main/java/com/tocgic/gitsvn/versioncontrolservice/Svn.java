@@ -141,7 +141,7 @@ public class Svn extends Vcs {
         if (origin == null) {
             origin = "";
         }
-        String messageHead = origin.replaceAll("[\n ]+", " ").trim();
+        String messageHead = new String(origin).replaceAll("[\n ]+", " ").trim();
         messageHead = (messageHead.length() > 50) ? messageHead.substring(0, 50) + "..." : messageHead;
         Out.println(Out.ANSI_GREEN, "... svn.commit("+messageHead+")");
         return run(false, makeParam("commit", "-m", origin));
