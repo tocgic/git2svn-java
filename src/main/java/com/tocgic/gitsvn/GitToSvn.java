@@ -219,6 +219,7 @@ public class GitToSvn {
         if (commitMessage == null || commitMessage.length() < 1) {
             commitMessage = "";
         }
+        commitMessage = commitMessage.replaceAll("\r", "\n");
         String authorInfo = "["+commiter+"]";
         String message = commitMessage.replace(authorInfo, "").trim()+"\n\n"+SVN_COMMIT_TAG+commit;
         String newCommitMessage = commitedDate+" "+authorInfo+" "+message;
@@ -231,6 +232,11 @@ public class GitToSvn {
                 Out.println(Out.ANSI_YELLOW, "svnCommit() - svn.clean() for RETRY");
                 svn.cleanup(false);
                 //svn.update();
+                Out.println(Out.ANSI_BLUE, ">>> commite Infos >>>");
+                Out.println(Out.ANSI_BLUE, commitedDate);
+                Out.println(Out.ANSI_BLUE, authorInfo);
+                Out.println(Out.ANSI_BLUE, message);
+                Out.println(Out.ANSI_BLUE, "\n");
                 try {
                     Thread.sleep(500L);
                 } catch (Exception e) {}
