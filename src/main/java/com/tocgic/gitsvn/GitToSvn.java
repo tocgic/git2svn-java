@@ -387,10 +387,9 @@ public class GitToSvn {
             svnCheckin();
             String commiter = git.getLogValueAuthor(commit);
             String commitedDate = git.getLogValueDate(commit);
-            String commitSubject = git.getLogValueSubject(commit);
-            String commitMessage = git.getLogValueMsg(commit);
+            String commitMessage = git.getLogValueSubjectAndMsg(commit);
             Out.println(Out.ANSI_RED, commitMessage);
-            svnCommit(commitedDate, commiter, commitSubject+"\n"+commitMessage, commit);
+            svnCommit(commitedDate, commiter, commitMessage, commit);
         // }
     }
     
@@ -420,14 +419,6 @@ public class GitToSvn {
             Out.println(Out.ANSI_PURPLE, ">> Start loop (git to svn)");
             for (String commit : revList) {
                 Out.println(Out.ANSI_PURPLE, ">> Process Git ["+commit+"]");
-                String commiter = git.getLogValueAuthor(commit);
-                String commitSubject = git.getLogValueSubject(commit);
-                String commitMessage = git.getLogValueMsg(commit);
-                String commitedDate = git.getLogValueDate(commit);
-                if (commitedDate != null && commitedDate.length() > 0) {
-                    commitedDate = commitedDate.replace("_", " ");
-                }
-
                 Out.println(Out.ANSI_PURPLE, "- GIT, checking out commit["+commit+"]");
                 git.checkout(commit, true);
 
@@ -436,8 +427,13 @@ public class GitToSvn {
 
                 Out.println(Out.ANSI_PURPLE, "- SVN, add new files to SVN and commit");
                 svnCheckin();
-                String message = commitSubject + "\n" + commitMessage;
-                boolean commitResult = svnCommit(commitedDate, commiter, message, commit);
+                String commiter = git.getLogValueAuthor(commit);
+                String commitMessage = git.getLogValueSubjectAndMsg(commit);
+                String commitedDate = git.getLogValueDate(commit);
+                if (commitedDate != null && commitedDate.length() > 0) {
+                    commitedDate = commitedDate.replace("_", " ");
+                }
+                boolean commitResult = svnCommit(commitedDate, commiter, commitMessage, commit);
                 if (!commitResult) {
                     Out.println(Out.ANSI_RED, "!!! svn commit FAIL !!! git commit:"+commit);
                     retryLimit--;
