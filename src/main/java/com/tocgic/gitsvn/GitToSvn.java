@@ -400,6 +400,7 @@ public class GitToSvn {
             for (String commit : revList) {
                 Out.println(Out.ANSI_PURPLE, ">> Process Git ["+commit+"]");
                 String commiter = git.getLogValueAuthor(commit);
+                String commitSubject = git.getLogValueSubject(commit);
                 String commitMessage = git.getLogValueMsg(commit);
                 String commitedDate = git.getLogValueDate(commit);
                 if (commitedDate != null && commitedDate.length() > 0) {
@@ -414,7 +415,8 @@ public class GitToSvn {
 
                 Out.println(Out.ANSI_PURPLE, "- SVN, add new files to SVN and commit");
                 svnCheckin();
-                boolean commitResult = svnCommit(commitedDate, commiter, commitMessage, commit);
+                String message = commitSubject + "\n" + commitMessage;
+                boolean commitResult = svnCommit(commitedDate, commiter, message, commit);
                 if (!commitResult) {
                     Out.println(Out.ANSI_RED, "!!! svn commit FAIL !!! git commit:"+commit);
                     retryLimit--;

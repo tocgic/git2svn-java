@@ -83,8 +83,12 @@ public class Git extends Vcs {
         return getLogValue(commit, "%an");
     }
 
-    public String getLogValueMsg(String commit) {
+    public String getLogValueSubject(String commit) {
         return getLogValue(commit, "%s");
+    }
+
+    public String getLogValueMsg(String commit) {
+        return getLogValue(commit, "%b");
     }
 
     public String getLogValueDate(String commit) {
