@@ -334,7 +334,7 @@ public class GitToSvn {
         }
     }
 
-    public void test() {
+    private void test() {
         // svn.getLastXmlLog();
         // git.checkout("master", true);
         // Out.println(git.getLogValueAuthor("02acdd5181b98c3a471a9b36e2450fb91eb284df"));
@@ -369,7 +369,8 @@ public class GitToSvn {
             // String commit = "02acdd5181b98c3a471a9b36e2450fb91eb284df";
             // String commit = "4e08059f7fa1965cd9d2f410ed998a489fd14ef1";
             // String commit = "224da1d9d0cd87ae3c493a5fd8e865634d961d58";
-            String commit = "d9917d7aaf49d3ac5e01bc76f156ce5399d6df88";
+            // String commit = "91f6566e10242904cbb44812e5f7c1a148a54e52";
+            String commit = "57f808f66e1e3c699c6677fdf9ebe32857d2a541";
 
             // Out.println(Out.ANSI_BLUE, "checking out commit["+commit+"] on git");
             git.checkout(commit, true);
@@ -386,8 +387,10 @@ public class GitToSvn {
             svnCheckin();
             String commiter = git.getLogValueAuthor(commit);
             String commitedDate = git.getLogValueDate(commit);
+            String commitSubject = git.getLogValueSubject(commit);
             String commitMessage = git.getLogValueMsg(commit);
-            svnCommit(commitedDate, commiter, commitMessage, commit);
+            Out.println(Out.ANSI_RED, commitMessage);
+            svnCommit(commitedDate, commiter, commitSubject+"\n"+commitMessage, commit);
         // }
     }
     
