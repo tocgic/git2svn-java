@@ -136,9 +136,15 @@ public class Svn extends Vcs {
     /**
      * svn commit -m {message}
      */
-    public String commit(String commitMessage) {
-        String messageHead = (commitMessage != null && commitMessage.length() > 50) ? commitMessage.substring(0, 50) + "..." : commitMessage;
+    public String commit(final String commitMessage) {
+        String origin = commitMessage;
+        if (origin == null) {
+            origin = "";
+        }
+        origin = origin.replaceAll("\r", "\n");
+        String messageHead = new String(origin).replaceAll("[\n ]+", " ").trim();
+        messageHead = (messageHead.length() > 50) ? messageHead.substring(0, 50) + "..." : messageHead;
         Out.println(Out.ANSI_GREEN, "... svn.commit("+messageHead+")");
-        return run(false, makeParam("commit", "-m", commitMessage));
+        return run(false, makeParam("commit", "-m", origin));
     }
 }

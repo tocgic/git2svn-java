@@ -124,6 +124,22 @@ public class GitToSvn {
         }
     }
 
+    private boolean gitPull() {
+        Out.println(Out.ANSI_YELLOW, "gitPull()");
+        boolean result = false;
+        String response = git.checkout(sourceGitBranchName, true);
+        result = RuntimeExecutor.isErrorResponse(response);
+        if (isDebug) {
+            Out.println(Out.ANSI_YELLOW, "gitPull(), git.checkout(), result:"+result);
+        }
+        response = git.pull(sourceGitBranchName);
+        result = RuntimeExecutor.isErrorResponse(response);
+        if (isDebug) {
+            Out.println(Out.ANSI_YELLOW, "cleanup(), git.pull(), result:"+result);
+        }
+        return result;
+    }
+
     private boolean cleanup() {
         Out.println(Out.ANSI_YELLOW, "cleanup()");
         boolean result = false;
@@ -219,6 +235,7 @@ public class GitToSvn {
         if (commitMessage == null || commitMessage.length() < 1) {
             commitMessage = "";
         }
+        commitMessage = commitMessage.replaceAll("\r", "\n");
         String authorInfo = "["+commiter+"]";
         String message = commitMessage.replace(authorInfo, "").trim()+"\n\n"+SVN_COMMIT_TAG+commit;
         String newCommitMessage = commitedDate+" "+authorInfo+" "+message;
@@ -231,6 +248,11 @@ public class GitToSvn {
                 Out.println(Out.ANSI_YELLOW, "svnCommit() - svn.clean() for RETRY");
                 svn.cleanup(false);
                 //svn.update();
+                Out.println(Out.ANSI_BLUE, ">>> commite Infos >>>");
+                Out.println(Out.ANSI_BLUE, commitedDate);
+                Out.println(Out.ANSI_BLUE, authorInfo);
+                Out.println(Out.ANSI_BLUE, message);
+                Out.println(Out.ANSI_BLUE, "\n");
                 try {
                     Thread.sleep(500L);
                 } catch (Exception e) {}
@@ -312,7 +334,7 @@ public class GitToSvn {
         }
     }
 
-    public void test() {
+    private void test() {
         // svn.getLastXmlLog();
         // git.checkout("master", true);
         // Out.println(git.getLogValueAuthor("02acdd5181b98c3a471a9b36e2450fb91eb284df"));
@@ -320,6 +342,7 @@ public class GitToSvn {
         // Out.println(git.getLogValueDate("02acdd5181b98c3a471a9b36e2450fb91eb284df"));
 
         cloneIfNeeds();
+        gitPull();
 
         cleanup();
 
@@ -346,7 +369,8 @@ public class GitToSvn {
             // String commit = "02acdd5181b98c3a471a9b36e2450fb91eb284df";
             // String commit = "4e08059f7fa1965cd9d2f410ed998a489fd14ef1";
             // String commit = "224da1d9d0cd87ae3c493a5fd8e865634d961d58";
-            String commit = "d9917d7aaf49d3ac5e01bc76f156ce5399d6df88";
+            // String commit = "91f6566e10242904cbb44812e5f7c1a148a54e52";
+            String commit = "57f808f66e1e3c699c6677fdf9ebe32857d2a541";
 
             // Out.println(Out.ANSI_BLUE, "checking out commit["+commit+"] on git");
             git.checkout(commit, true);
@@ -363,7 +387,8 @@ public class GitToSvn {
             svnCheckin();
             String commiter = git.getLogValueAuthor(commit);
             String commitedDate = git.getLogValueDate(commit);
-            String commitMessage = git.getLogValueMsg(commit);
+            String commitMessage = git.getLogValueSubjectAndMsg(commit);
+            Out.println(Out.ANSI_RED, commitMessage);
             svnCommit(commitedDate, commiter, commitMessage, commit);
         // }
     }
@@ -372,6 +397,7 @@ public class GitToSvn {
         Date startDate = new java.util.Date();
         Out.println(Out.ANSI_PURPLE, ">> Check (svn & git) repository directory.");
         cloneIfNeeds();
+        gitPull();
         boolean isSuccessDone = false;
         int totalRetryCount = 0;
         do {
@@ -393,13 +419,6 @@ public class GitToSvn {
             Out.println(Out.ANSI_PURPLE, ">> Start loop (git to svn)");
             for (String commit : revList) {
                 Out.println(Out.ANSI_PURPLE, ">> Process Git ["+commit+"]");
-                String commiter = git.getLogValueAuthor(commit);
-                String commitMessage = git.getLogValueMsg(commit);
-                String commitedDate = git.getLogValueDate(commit);
-                if (commitedDate != null && commitedDate.length() > 0) {
-                    commitedDate = commitedDate.replace("_", " ");
-                }
-
                 Out.println(Out.ANSI_PURPLE, "- GIT, checking out commit["+commit+"]");
                 git.checkout(commit, true);
 
@@ -408,6 +427,12 @@ public class GitToSvn {
 
                 Out.println(Out.ANSI_PURPLE, "- SVN, add new files to SVN and commit");
                 svnCheckin();
+                String commiter = git.getLogValueAuthor(commit);
+                String commitMessage = git.getLogValueSubjectAndMsg(commit);
+                String commitedDate = git.getLogValueDate(commit);
+                if (commitedDate != null && commitedDate.length() > 0) {
+                    commitedDate = commitedDate.replace("_", " ");
+                }
                 boolean commitResult = svnCommit(commitedDate, commiter, commitMessage, commit);
                 if (!commitResult) {
                     Out.println(Out.ANSI_RED, "!!! svn commit FAIL !!! git commit:"+commit);

@@ -38,6 +38,22 @@ public class Git extends Vcs {
     }
 
     /**
+     * git pull https://username:password@github.com/username/repository.git master
+     */
+    public String pull(String branchName) {
+        if (remoteUrl == null || remoteUrl.length() < 1) {
+            return null;
+        }
+        if (branchName == null || branchName.length() < 1) {
+            return null;
+        }
+        Out.println(Out.ANSI_GREEN, "... git.pull("+branchName+")");
+        //TODO : remoteAuthUrl (add username & password)
+        String remoteAuthUrl = this.remoteUrl;
+        return run(makeParam("pull", remoteAuthUrl, branchName));
+    }
+
+    /**
      * git checkout {branchName}
      * 
      * @param branchOrCommit : branch or commit
@@ -83,8 +99,16 @@ public class Git extends Vcs {
         return getLogValue(commit, "%an");
     }
 
-    public String getLogValueMsg(String commit) {
+    public String getLogValueSubject(String commit) {
         return getLogValue(commit, "%s");
+    }
+
+    public String getLogValueMsg(String commit) {
+        return getLogValue(commit, "%b");
+    }
+
+    public String getLogValueSubjectAndMsg(String commit) {
+        return getLogValue(commit, "%B");
     }
 
     public String getLogValueDate(String commit) {
