@@ -1,5 +1,7 @@
 package com.tocgic.gitsvn.versioncontrolservice;
 
+import java.net.URI;
+
 import com.tocgic.gitsvn.util.Out;
 
 public class Git extends Vcs {
@@ -7,6 +9,7 @@ public class Git extends Vcs {
 
     public Git(String remoteUrl, String repoDirectory, String authUser, String authPass) {
         super(remoteUrl, repoDirectory, authUser, authPass);
+        checkAuthenticationInformation();
     }
 
     @Override
@@ -22,6 +25,34 @@ public class Git extends Vcs {
     @Override
     protected String getOptionNamePass() {
         return null;
+    }
+
+    /**
+     * git Url 인증 정보 확인
+     * git@ 이 아닌 https 의 프로토콜은 사용자 인증정보를 포함시킨다.
+     * https://username:password@github.com/username/repository.git
+     */
+    private void checkAuthenticationInformation() {
+        if (authUser == null || authUser.length() < 1) {
+            return;
+        }
+        if (authPass == null || authPass.length() < 1) {
+            return;
+        }
+        if (remoteUrl == null || remoteUrl.length() < 1) {
+            return;
+        }
+        if (remoteUrl.toLowerCase().startsWith("git@")) {
+            return;
+        }
+        URI uri = URI.create(remoteUrl);
+        String scheme = uri.getScheme();
+        String host = uri.getHost();
+        String path = uri.getPath();
+        remoteUrl = scheme + "://" + authUser + ":" + authPass + "@" + host + path;
+        authUser = null;
+        authPass = null;
+        Out.println(Out.ANSI_GREEN, "checkAuthenticationInformation(), remoteUrl updated");
     }
 
     /**
