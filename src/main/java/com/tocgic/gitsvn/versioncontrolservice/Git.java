@@ -89,7 +89,6 @@ public class Git extends Vcs {
             return null;
         }
         Out.println(Out.ANSI_GREEN, "... git.clone()");
-        //TODO : remoteAuthUrl (add username & password)
         String remoteAuthUrl = this.remoteUrl;
         return run(makeParam("clone", remoteAuthUrl, "."));
     }
@@ -105,7 +104,6 @@ public class Git extends Vcs {
             return null;
         }
         Out.println(Out.ANSI_GREEN, "... git.pull("+branchName+")");
-        //TODO : remoteAuthUrl (add username & password)
         Out.println(Out.ANSI_GREEN, "... > git reset --hard HEAD");
         run(makeParam("reset", "--hard", "HEAD"));
         Out.println(Out.ANSI_GREEN, "... > git clean -xffd");
