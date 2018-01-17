@@ -49,15 +49,17 @@ public class Git extends Vcs {
         URI uri = URI.create(remoteUrl);
         String scheme = uri.getScheme();
         String host = uri.getHost();
+        int port = uri.getPort();
         String path = uri.getPath();
         // Out.println("scheme:"+scheme);
         // Out.println("authUser:"+authUser);
         // Out.println("authPass:"+authPass);
         // Out.println("host:"+host);
+        // Out.println("port:"+port);
         // Out.println("path:"+path);
-        remoteUrl = scheme + "://" + authUser + ":" + urlEncode(authPass) + "@" + host + path;
-        Out.println("remoteUrl:"+remoteUrl);
-        // authUser = null;
+        remoteUrl = scheme + "://" + authUser + ":" + urlEncode(authPass) + "@" + host + ((port > 0) ? (":"+port) : "") + path;
+        // Out.println("remoteUrl:"+remoteUrl);
+        authUser = null;
         authPass = null;
         Out.println(Out.ANSI_GREEN, "checkAuthenticationInformation(), remoteUrl updated");
     }
@@ -87,7 +89,6 @@ public class Git extends Vcs {
             return null;
         }
         Out.println(Out.ANSI_GREEN, "... git.clone()");
-        //TODO : remoteAuthUrl (add username & password)
         String remoteAuthUrl = this.remoteUrl;
         return run(makeParam("clone", remoteAuthUrl, "."));
     }
@@ -103,7 +104,10 @@ public class Git extends Vcs {
             return null;
         }
         Out.println(Out.ANSI_GREEN, "... git.pull("+branchName+")");
-        //TODO : remoteAuthUrl (add username & password)
+        Out.println(Out.ANSI_GREEN, "... > git reset --hard HEAD");
+        run(makeParam("reset", "--hard", "HEAD"));
+        Out.println(Out.ANSI_GREEN, "... > git clean -xffd");
+        run(makeParam("clean", "-xffd"));
         String remoteAuthUrl = this.remoteUrl;
         return run(makeParam("pull", remoteAuthUrl, branchName));
     }
