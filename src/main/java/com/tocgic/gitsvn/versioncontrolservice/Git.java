@@ -106,6 +106,10 @@ public class Git extends Vcs {
         }
         Out.println(Out.ANSI_GREEN, "... git.pull("+branchName+")");
         //TODO : remoteAuthUrl (add username & password)
+        Out.println(Out.ANSI_GREEN, "... > git reset --hard HEAD");
+        run(makeParam("reset", "--hard", "HEAD"));
+        Out.println(Out.ANSI_GREEN, "... > git clean -xffd");
+        run(makeParam("clean", "-xffd"));
         String remoteAuthUrl = this.remoteUrl;
         return run(makeParam("pull", remoteAuthUrl, branchName));
     }
