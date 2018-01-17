@@ -1,6 +1,7 @@
 package com.tocgic.gitsvn.versioncontrolservice;
 
 import java.net.URI;
+import java.net.URLEncoder;
 
 import com.tocgic.gitsvn.util.Out;
 
@@ -49,10 +50,33 @@ public class Git extends Vcs {
         String scheme = uri.getScheme();
         String host = uri.getHost();
         String path = uri.getPath();
-        remoteUrl = scheme + "://" + authUser + ":" + authPass + "@" + host + path;
-        authUser = null;
+        // Out.println("scheme:"+scheme);
+        // Out.println("authUser:"+authUser);
+        // Out.println("authPass:"+authPass);
+        // Out.println("host:"+host);
+        // Out.println("path:"+path);
+        remoteUrl = scheme + "://" + authUser + ":" + urlEncode(authPass) + "@" + host + path;
+        Out.println("remoteUrl:"+remoteUrl);
+        // authUser = null;
         authPass = null;
         Out.println(Out.ANSI_GREEN, "checkAuthenticationInformation(), remoteUrl updated");
+    }
+
+    /**
+     * https://fabianlee.org/2016/09/07/git-calling-git-clone-using-password-with-special-character/
+     * 
+     * !   #   $    &   '   (   )   *   +   ,   /   :   ;   =   ?   @   [   ]
+     * %21 %23 %24 %26 %27 %28 %29 %2A %2B %2C %2F %3A %3B %3D %3F %40 %5B %5D
+     */
+    private String urlEncode(final String source) {
+        String password = source;
+        if (password == null || password.length() < 1) {
+            return password;
+        }
+        try {
+            password = URLEncoder.encode(password, "UTF-8");
+        } catch (Exception e) {}
+        return password;
     }
 
     /**
