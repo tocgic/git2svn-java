@@ -195,7 +195,8 @@ public class GitToSvn {
                         } else if (status != null && status.startsWith("~")) {
                             //svn.run("rm", "-rf", fileName);
                             try {
-                                FileUtils.forceDelete(new File(svn.getRepoDirectory()+File.separator+fileName));
+                                String targetFileName = fileName.contains(svn.getRepoDirectory()) ? fileName : svn.getRepoDirectory() + File.separator + fileName;
+                                FileUtils.forceDelete(new File(targetFileName));
                             } catch (IOException eFile) {
                                 Out.println(Out.ANSI_RED, eFile.getMessage());
                             }
