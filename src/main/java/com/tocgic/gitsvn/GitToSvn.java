@@ -121,6 +121,7 @@ public class GitToSvn {
         if (!gitFolder.exists()) {
             Out.println(Out.ANSI_YELLOW, "cloneIfNeeds(), git.clone()");
             git.clone();
+            git.setConfig();
         }
     }
 
