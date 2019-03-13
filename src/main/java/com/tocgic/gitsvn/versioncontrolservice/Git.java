@@ -1,9 +1,10 @@
 package com.tocgic.gitsvn.versioncontrolservice;
 
+import com.tocgic.gitsvn.util.Out;
+
 import java.net.URI;
 import java.net.URLEncoder;
-
-import com.tocgic.gitsvn.util.Out;
+import java.util.ArrayList;
 
 public class Git extends Vcs {
     private String branchName;
@@ -79,6 +80,20 @@ public class Git extends Vcs {
             password = URLEncoder.encode(password, "UTF-8");
         } catch (Exception e) {}
         return password;
+    }
+
+    /**
+     * git config 설정
+     * @return
+     */
+    public String setConfig() {
+        //git 에서 한글 파일 표시 문제 해결 : $git config --global core.quotepath false
+        ArrayList<String> list = new ArrayList<>();
+        list.add(getVcsName());
+        list.add("config");
+        list.add("core.quotepath");
+        list.add("false");
+        return run(list);
     }
 
     /**
@@ -172,5 +187,10 @@ public class Git extends Vcs {
 
     public String getLogValueDate(String commit) {
         return getLogValue(commit, "%cd");
+    }
+
+    @Override
+    boolean onHadledErrorByExcute(String output) {
+        return false;
     }
 }

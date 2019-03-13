@@ -1,13 +1,15 @@
 package com.tocgic.gitsvn.util;
 
-import com.tocgic.gitsvn.util.Out;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.ExecuteException;
 import org.apache.commons.exec.PumpStreamHandler;
+import org.apache.commons.exec.environment.EnvironmentUtils;
+
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.util.Map;
 
 public class RuntimeExecutor {
     public static final String RUNTIME_EXECUTOR_ERROR = "[RuntimeExecutor_error]";
@@ -84,22 +86,26 @@ public class RuntimeExecutor {
             }
         }
         try {
-            String params = "";
-            for (String cmd : command) {
-                params += cmd + " ";
-            }
             if (isDebug) {
+                String params = "";
+                for (String cmd : command) {
+                    params += cmd + " ";
+                }
                 Out.println(Out.ANSI_BLUE, "... runtime$ " + params);
             }
-            
-            int exitCode = executor.execute(cmdLine);
-            rtnStr = baos.toString();
+
+            Map<String, String> env = EnvironmentUtils.getProcEnvironment();
+            env.put("LANG", "en_US.UTF-8");
+            env.put("LC_ALL", "en_US.UTF-8");
+            int exitCode = executor.execute(cmdLine, env);
         } catch (ExecuteException ee) {
-            rtnStr += "\n\n"+RUNTIME_EXECUTOR_ERROR+" "+ee.getMessage();
+            rtnStr += "\n\n"+RUNTIME_EXECUTOR_ERROR+" "+ee.getMessage() + "\n\n";
             ee.printStackTrace();
         } catch (IOException ie) {
-            rtnStr += "\n\n"+RUNTIME_EXECUTOR_ERROR+" "+ie.getMessage();
+            rtnStr += "\n\n"+RUNTIME_EXECUTOR_ERROR+" "+ie.getMessage() + "\n\n";
             ie.printStackTrace();
+        } finally {
+            rtnStr += baos.toString();
         }
         return rtnStr;
     }
