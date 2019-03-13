@@ -1,25 +1,21 @@
 package com.tocgic.gitsvn;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileFilter;
-import java.io.IOException;
-import java.io.StringReader;
+import com.tocgic.gitsvn.util.Out;
+import com.tocgic.gitsvn.util.RuntimeExecutor;
+import com.tocgic.gitsvn.versioncontrolservice.Git;
+import com.tocgic.gitsvn.versioncontrolservice.Svn;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.IOFileFilter;
+
+import java.io.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.IOFileFilter;
-import com.tocgic.gitsvn.util.Out;
-import com.tocgic.gitsvn.util.RuntimeExecutor;
-import com.tocgic.gitsvn.versioncontrolservice.Git;
-import com.tocgic.gitsvn.versioncontrolservice.Svn;
-
 public class GitToSvn {
-    private static final int RETRY_MAX = 3;
+    private static final int RETRY_MAX = 1;
     private static final String SVN_COMMIT_TAG = "GitCommitHash:";
     private Svn svn;
     private Git git;
@@ -247,8 +243,8 @@ public class GitToSvn {
             if (RuntimeExecutor.isErrorResponse(response)) {
                 Out.println(Out.ANSI_RED, response);
                 result = false;
-                Out.println(Out.ANSI_YELLOW, "svnCommit() - svn.clean() for RETRY");
-                svn.cleanup(false);
+                //Out.println(Out.ANSI_YELLOW, "svnCommit() - svn.clean() for RETRY");
+                //svn.cleanup(false);
                 //svn.update();
                 Out.println(Out.ANSI_BLUE, ">>> commite Infos >>>");
                 Out.println(Out.ANSI_BLUE, commitedDate);
@@ -307,7 +303,7 @@ public class GitToSvn {
             };
             Collection<File> allFiles = FileUtils.listFilesAndDirs(svnDir, rmIgnoreFilter, rmIgnoreFilter);
             for (File file : allFiles) {
-                if (file.getAbsolutePath() == svnDir.getAbsolutePath()) {
+                if (file.getAbsolutePath().equals(svnDir.getAbsolutePath())) {
                     continue;
                 }
                 if (!file.exists()) {
@@ -331,6 +327,9 @@ public class GitToSvn {
                 }
             };
             FileUtils.copyDirectory(gitDir, svnDir, cpIgnoreFilter, true);
+
+            //repo 하위 subDirectory 에서 .svn 이 있는 경우 svn commit 을 할 수 없다.
+            svn.removeSvnSubDirectory();
         } catch (Exception e) {
             Out.println(Out.ANSI_RED, e.getMessage());
         }
@@ -394,8 +393,8 @@ public class GitToSvn {
             svnCommit(commitedDate, commiter, commitMessage, commit);
         // }
     }
-    
-    private void start() {
+
+    public void start() {
         Date startDate = new java.util.Date();
         Out.println(Out.ANSI_PURPLE, ">> Check (svn & git) repository directory.");
         cloneIfNeeds();

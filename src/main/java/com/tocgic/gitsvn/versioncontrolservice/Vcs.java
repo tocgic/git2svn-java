@@ -2,6 +2,7 @@ package com.tocgic.gitsvn.versioncontrolservice;
 
 import com.tocgic.gitsvn.util.Out;
 import com.tocgic.gitsvn.util.RuntimeExecutor;
+
 import java.io.File;
 import java.util.ArrayList;
 
@@ -16,6 +17,7 @@ abstract public class Vcs {
     abstract String getVcsName();
     abstract String getOptionNameUser();
     abstract String getOptionNamePass();
+    abstract boolean onHadledErrorByExcute(String output);
 
     public Vcs(String remoteUrl, String repoDirectory, String authUser, String authPass) {
         this.remoteUrl = remoteUrl;
@@ -84,8 +86,14 @@ abstract public class Vcs {
     public String run(boolean handleQuoting, String... commands) {
         String result = null;
         result = executor.execAndRtnResult(commands, handleQuoting);
-        if (isDebug) {
-            Out.println(result);
+        if (RuntimeExecutor.isErrorResponse(result)) {
+            if (onHadledErrorByExcute(result)) {
+                result = run(handleQuoting, commands);
+            }
+        } else {
+            if (isDebug) {
+                Out.println(result);
+            }
         }
         return result;
     }

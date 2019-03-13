@@ -188,4 +188,9 @@ public class Git extends Vcs {
     public String getLogValueDate(String commit) {
         return getLogValue(commit, "%cd");
     }
+
+    @Override
+    boolean onHadledErrorByExcute(String output) {
+        return false;
+    }
 }
