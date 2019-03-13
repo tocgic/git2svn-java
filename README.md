@@ -50,8 +50,6 @@ $ java -jar git2svn-java-{version}.jar {option:-debug} {gitDir} {gitUrl} {svnDir
 - Build / Execute shell
 
   ```sh
-  export LANG=en_US.UTF-8
-  export LC_ALL=en_US.UTF-8
   java -jar git2svn-java-{version}.jar `pwd` "{gitUrl}" "{svnDir}" "{svnUrl}" "{svnId}" "{svnPassword}"
   ```
 
