@@ -190,7 +190,7 @@ public class Git extends Vcs {
     }
 
     @Override
-    boolean onHadledErrorByExcute(String output) {
+    boolean onHandledErrorByExecute(String output) {
         return false;
     }
 }
