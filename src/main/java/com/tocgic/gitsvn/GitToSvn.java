@@ -259,7 +259,9 @@ public class GitToSvn {
             }
         } while (tryLimit > 0);
         Out.println(Out.ANSI_YELLOW, "svnCommit(), result:"+result);
-        Out.println(Out.ANSI_YELLOW, "======================================================================\n"+newCommitMessage+"\n======================================================================\n\n");
+        Out.println(Out.ANSI_YELLOW, "======================================================================");
+        Out.println(Out.ANSI_YELLOW, newCommitMessage);
+        Out.println(Out.ANSI_YELLOW, "======================================================================\n\n");
         return result;
     }
 
