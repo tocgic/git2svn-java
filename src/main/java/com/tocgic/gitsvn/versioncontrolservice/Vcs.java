@@ -17,7 +17,7 @@ abstract public class Vcs {
     abstract String getVcsName();
     abstract String getOptionNameUser();
     abstract String getOptionNamePass();
-    abstract boolean onHadledErrorByExcute(String output);
+    abstract boolean onHandledErrorByExecute(String output);
 
     public Vcs(String remoteUrl, String repoDirectory, String authUser, String authPass) {
         this.remoteUrl = remoteUrl;
@@ -87,7 +87,7 @@ abstract public class Vcs {
         String result = null;
         result = executor.execAndRtnResult(commands, handleQuoting);
         if (RuntimeExecutor.isErrorResponse(result)) {
-            if (onHadledErrorByExcute(result)) {
+            if (onHandledErrorByExecute(result)) {
                 result = run(handleQuoting, commands);
             }
         } else {

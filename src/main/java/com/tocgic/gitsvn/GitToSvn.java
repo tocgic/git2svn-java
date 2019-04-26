@@ -259,7 +259,9 @@ public class GitToSvn {
             }
         } while (tryLimit > 0);
         Out.println(Out.ANSI_YELLOW, "svnCommit(), result:"+result);
-        Out.println(Out.ANSI_YELLOW, "======================================================================\n"+newCommitMessage+"\n======================================================================\n\n");
+        Out.println(Out.ANSI_YELLOW, "======================================================================");
+        Out.println(Out.ANSI_YELLOW, newCommitMessage);
+        Out.println(Out.ANSI_YELLOW, "======================================================================\n\n");
         return result;
     }
 
@@ -428,13 +430,13 @@ public class GitToSvn {
 
                 Out.println(Out.ANSI_PURPLE, "- SVN, add new files to SVN and commit");
                 svnCheckin();
-                String commiter = git.getLogValueAuthor(commit);
+                String committer = git.getLogValueAuthor(commit);
                 String commitMessage = git.getLogValueSubjectAndMsg(commit);
-                String commitedDate = git.getLogValueDate(commit);
-                if (commitedDate != null && commitedDate.length() > 0) {
-                    commitedDate = commitedDate.replace("_", " ");
+                String committedDate = git.getLogValueDate(commit);
+                if (committedDate != null && committedDate.length() > 0) {
+                    committedDate = committedDate.replace("_", " ");
                 }
-                boolean commitResult = svnCommit(commitedDate, commiter, commitMessage, commit);
+                boolean commitResult = svnCommit(committedDate, committer, commitMessage, commit);
                 if (!commitResult) {
                     Out.println(Out.ANSI_RED, "!!! svn commit FAIL !!! git commit:"+commit);
                     retryLimit--;
