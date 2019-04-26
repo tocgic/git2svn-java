@@ -212,7 +212,7 @@ public class Svn extends Vcs {
     }
 
     @Override
-    protected boolean onHadledErrorByExcute(String output) {
+    protected boolean onHandledErrorByExecute(String output) {
         boolean isHandled = false;
         final String E000002 = "svn: E000002: Can't open directory '"; //svn: E000002: Can't open directory '{directory}': No such file or directory
         final String E120108 = "svn: E120108: Error running context: The server unexpectedly closed the connection.";

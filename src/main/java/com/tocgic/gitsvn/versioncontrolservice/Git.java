@@ -144,7 +144,9 @@ public class Git extends Vcs {
     }
 
     /**
-     * git rev-list $GIT_BRANCH_NAME --all-match --reverse
+     * git rev-list $GIT_BRANCH_NAME --first-parent --reverse
+     *
+     * 옵션 변경 : --all-match -> --first-parent : 다른 branch 에서 머지시 branch 된 시점이 과거인 경우, 소스가 과거 소스와 섞이는 문제가 발생한다.
      * 
      * @param branchName : branchName
      */
@@ -153,7 +155,7 @@ public class Git extends Vcs {
             branchName = "master";
         }
         Out.println(Out.ANSI_GREEN, "... git.getRevListAllMatch("+branchName+")");
-        return run(makeParam("rev-list", branchName, "--all-match", "--reverse"));
+        return run(makeParam("rev-list", branchName, "--first-parent", "--reverse"));
     }
 
     /**
@@ -190,7 +192,7 @@ public class Git extends Vcs {
     }
 
     @Override
-    boolean onHadledErrorByExcute(String output) {
+    boolean onHandledErrorByExecute(String output) {
         return false;
     }
 }
